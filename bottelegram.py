@@ -7,7 +7,8 @@ Chave_API = "5449080279:AAEMmhTKME9SZXpDUTn2jSQHbpwsc6uTQGg"
 bot = telebot.TeleBot(Chave_API)
 
 RETORNARFILTRADO_LEN = 18 # '/RetornarFiltrado '
-RETORPRECOSPORESTADO_LEN = 25 # '/RetornarPrecosPorEstado '
+RETORNARPRECOSPORESTADO_LEN = 25 # '/RetornarPrecosPorEstado '
+RETORNARTODOSPRECOSPORESTADO_LEN = 30 #
 
 #Comando de /RetornarFiltrado
 @bot.message_handler(commands=["RetornarFiltrado"])
@@ -32,9 +33,9 @@ def responder(mensagem):
     respString += "\nProduto: " + resposta['produto']
     respString += "\n"
     respString += "\nPreços:"
-    respString += "\nPreço médio de revenda: " + str(resposta['preco_medio_revenda'])
-    respString += "\nPreço minímo de revenda: " + str(resposta['preco_minimo_revenda'])
-    respString += "\nPreço máximo de revenda: " + str(resposta['preco_maximo_revenda'])    
+    respString += "\nPreço médio de revenda: R$" + str(resposta['preco_medio_revenda'])
+    respString += "\nPreço minímo de revenda: R$" + str(resposta['preco_minimo_revenda'])
+    respString += "\nPreço máximo de revenda: R$" + str(resposta['preco_maximo_revenda'])    
     
     bot.send_message(mensagem.chat.id, respString)
 
@@ -77,13 +78,12 @@ def responder(mensagem):
 #Comando de /RetornarPrecosPorEstado
 @bot.message_handler(commands=["RetornarPrecosPorEstado"])
 def responder(mensagem):
-    msg_text = mensagem.text[RETORPRECOSPORESTADO_LEN:]
+    msg_text = mensagem.text[RETORNARPRECOSPORESTADO_LEN:]
     if msg_text == "":
         msg_text = "Favor inserir todos os parâmetros necessários: /RetornarPrecosPorEstado COMBUSTIVEL"
         return bot.send_message(mensagem.chat.id, msg_text)
 
-    combustivel = msg_text.upper()
-    print(combustivel)
+    combustivel = msg_text.upper()    
 
     r = requests.get('http://localhost:5000/api/v1/Registro/RetornarPrecosPorEstados/{0}'.format(combustivel))
     resposta = r.json()    
@@ -92,7 +92,28 @@ def responder(mensagem):
     for r in resposta:
         respString += "\nEstado: " + r['estado']    
         respString += "\nProduto: " + r['produto']                
-        respString += "\nPreço médio de revenda: " + str(r['preco_medio_revenda'])
+        respString += "\nPreço médio de revenda: R$" + str(r['preco_medio_revenda'])
+        respString += "\n"
+    
+    bot.send_message(mensagem.chat.id, respString)
+
+#Comando de /RetornarTodosPrecosPorEstado
+@bot.message_handler(commands=["RetornarTodosPrecosPorEstado"])
+def responder(mensagem):
+    msg_text = mensagem.text[RETORNARTODOSPRECOSPORESTADO_LEN:]
+    if msg_text == "":
+        msg_text = "Favor inserir todos os parâmetros necessários: /RetornarTodosPrecosPorEstado ESTADO"
+        return bot.send_message(mensagem.chat.id, msg_text)
+
+    estado = msg_text.upper()    
+
+    r = requests.get('http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{0}'.format(estado))
+    resposta = r.json()      
+    respString = "Preço médio de revenda dos combustiveis referentes ao estado de {0}\n\n".format(estado)
+
+    for r in resposta:        
+        respString += "\nProduto: " + r['produto']                
+        respString += "\nPreço médio de revenda: R$" + str(r['preco_medio_revenda'])
         respString += "\n"
     
     bot.send_message(mensagem.chat.id, respString)    
@@ -115,7 +136,8 @@ def responder(mensagem):
     \n/RetornarCombustiveis - Para retornar todos os combustiveis disponíveis para consulta.
     \n/RetornarFiltrado ESTADO/MUNICIPIO/COMBUSTIVEL - Para retornar todas as informações de combustivel de maneira filtrada.
     \n/RetornarPrecosPorEstado COMBUSTIVEL - Para retornar todas os preços médios de revenda do combustivel escolhido por estado.
-    \nResponder qualquer outra coisa não vai funcionar, clique em uma das opções ou digite /menu para ver esse menu sempre que desejar."""
+    \n/RetornarTodosPrecosPorEstado ESTADO - Para retornar todas os preços médios de revenda dos combustiveis por estado.
+    \n\nResponder qualquer outra coisa não vai funcionar, clique em uma das opções ou digite /menu para ver esse menu sempre que desejar."""
     bot.reply_to(mensagem, texto)
 
 bot.polling()
