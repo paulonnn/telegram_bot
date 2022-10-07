@@ -1,5 +1,6 @@
 import telebot
 import requests
+import datetime
 import json
 
 Chave_API = "5449080279:AAEMmhTKME9SZXpDUTn2jSQHbpwsc6uTQGg"
@@ -9,6 +10,8 @@ bot = telebot.TeleBot(Chave_API)
 RETORNARFILTRADO_LEN = 18 # '/RetornarFiltrado '
 RETORNARPRECOSPORESTADO_LEN = 25 # '/RetornarPrecosPorEstado '
 RETORNARTODOSPRECOSPORESTADO_LEN = 30 #
+
+DATA_ATT = datetime.date.today().strftime("%d/%m/%Y")
 
 #Comando de /RetornarFiltrado
 @bot.message_handler(commands=["RetornarFiltrado"])
@@ -35,7 +38,8 @@ def responder(mensagem):
     respString += "\nPreços:"
     respString += "\nPreço médio de revenda: R$" + str(resposta['preco_medio_revenda'])
     respString += "\nPreço minímo de revenda: R$" + str(resposta['preco_minimo_revenda'])
-    respString += "\nPreço máximo de revenda: R$" + str(resposta['preco_maximo_revenda'])    
+    respString += "\nPreço máximo de revenda: R$" + str(resposta['preco_maximo_revenda'])
+    respString += "\nData da atualização dos preços: " + DATA_ATT
     
     bot.send_message(mensagem.chat.id, respString)
 
@@ -49,6 +53,8 @@ def responder(mensagem):
     for c in resposta:
         strResp += c + "\n"
     
+    print(resposta)
+    strResp += "\nData da atualização: " + DATA_ATT
     bot.send_message(mensagem.chat.id, strResp)
 
 #Comando de /RetornarEstados
@@ -61,6 +67,8 @@ def responder(mensagem):
     for c in resposta:
         strResp += c + "\n"
     
+    print(resposta)
+    strResp += "\nData da atualização: " + DATA_ATT
     bot.send_message(mensagem.chat.id, strResp)
 
 #Comando de /RetornarCombustiveis
@@ -73,6 +81,7 @@ def responder(mensagem):
     for c in resposta:
         strResp += c + "\n"
     
+    strResp += "\nData da atualização: " + DATA_ATT
     bot.send_message(mensagem.chat.id, strResp)
 
 #Comando de /RetornarPrecosPorEstado
@@ -91,10 +100,11 @@ def responder(mensagem):
 
     for r in resposta:
         respString += "\nEstado: " + r['estado']    
-        respString += "\nProduto: " + r['produto']                
+        respString += "\nProduto: " + r['produto']
         respString += "\nPreço médio de revenda: R$" + str(r['preco_medio_revenda'])
         respString += "\n"
     
+    respString += "\nData da atualização dos preços: " + DATA_ATT
     bot.send_message(mensagem.chat.id, respString)
 
 #Comando de /RetornarTodosPrecosPorEstado
@@ -108,7 +118,7 @@ def responder(mensagem):
     estado = msg_text.upper()    
 
     r = requests.get('http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{0}'.format(estado))
-    resposta = r.json()      
+    resposta = r.json()          
     respString = "Preço médio de revenda dos combustiveis referentes ao estado de {0}\n\n".format(estado)
 
     for r in resposta:        
@@ -116,6 +126,7 @@ def responder(mensagem):
         respString += "\nPreço médio de revenda: R$" + str(r['preco_medio_revenda'])
         respString += "\n"
     
+    respString += "\nData da atualização dos preços: " + DATA_ATT
     bot.send_message(mensagem.chat.id, respString)    
 
 
