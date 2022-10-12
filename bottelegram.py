@@ -2,21 +2,31 @@ from asyncore import dispatcher
 import string
 from tracemalloc import start
 from telegram import *
+import telegram
 from telegram.ext import *
 import requests
 
+# Token para funcionamento do BOT
 updater = Updater(token="5449080279:AAEMmhTKME9SZXpDUTn2jSQHbpwsc6uTQGg")
 dispatcher = updater.dispatcher
 
+ # Listar Menu com as opções
 def menu(update: Update, context: CallbackContext):
     buttons = [[InlineKeyboardButton("Municipios", callback_data="municipios-listar")], [InlineKeyboardButton("Estados", callback_data="estados-listar")], [InlineKeyboardButton("Combustiveis", callback_data="combustiveis-listar")]]
-    texto = "Bem-vindo ao Gasolina Bot!\nEscolha uma opção para continuar (Clique no item desejado):"
-    return context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text=texto)
+    texto = "Bem-vindo ao Gasolina Bot!\nEscolha uma opção para continuar (<b><i>Clique</i></b> no item desejado):"
+    return context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text=texto, parse_mode=telegram.constants.PARSEMODE_HTML)
 
+# TESTE
 def startCommand(update: Update, context: CallbackContext):
     buttons = [[KeyboardButton("Teste")], [KeyboardButton("Teste 2")]]
     context.bot.send_message(chat_id=update.effective_chat.id, text="Bem-Vindo!", reply_markup=ReplyKeyboardMarkup(buttons))
 
+# Pergunta se o usuario deseja mostrar o menu novamente
+def msgMenuNovamente(update: Update, context: CallbackContext):
+    buttons = [[InlineKeyboardButton("Sim", callback_data="menu-listar")]]
+    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="Deseja ver o menu principal novamente?", parse_mode=telegram.constants.PARSEMODE_HTML)
+
+# Lista todos os Estados registrados no banco
 def ListarEstados(update: Update, context: CallbackContext):
     buttons = []
     r = requests.get('http://localhost:5000/api/v1/Registro/RetornarEstados')
@@ -26,12 +36,9 @@ def ListarEstados(update: Update, context: CallbackContext):
         tipoComando = "{0}-estado".format(estado)
         buttons.append([InlineKeyboardButton(estado, callback_data=tipoComando)])
 
-    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="Lista de Estados disponíveis para consulta")
+    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Estados disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)
 
-def msgMenuNovamente(update: Update, context: CallbackContext):
-    buttons = [[InlineKeyboardButton("Sim", callback_data="menu-listar")]]
-    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="Deseja ver o menu principal novamente?")
-
+# Lista todos os Municipios registrados no banco
 def ListarMunicipios(update: Update, context: CallbackContext):
     buttons = []
     r = requests.get('http://localhost:5000/api/v1/Registro/RetornarMunicipios')
@@ -41,8 +48,9 @@ def ListarMunicipios(update: Update, context: CallbackContext):
         tipoComando = "{0}-municipio".format(municipio)
         buttons.append([InlineKeyboardButton(municipio, callback_data=tipoComando)])
 
-    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="Lista de Municipios disponíveis para consulta")
+    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Municipios disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)
 
+# Lista todos os Combustiveis registrados no banco
 def ListarCombustiveis(update: Update, context: CallbackContext):
     buttons = []
     r = requests.get('http://localhost:5000/api/v1/Registro/RetornarProdutos')
@@ -52,8 +60,9 @@ def ListarCombustiveis(update: Update, context: CallbackContext):
         tipoComando = "{0}-combustiveis".format(combustivel)
         buttons.append([InlineKeyboardButton(combustivel, callback_data=tipoComando)])
 
-    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="Lista de Combustiveis disponíveis para consulta")  
+    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)  
 
+# Handler para identificar a mensagem enviada pelo usuario
 def messageHandler(update: Update, context: CallbackContext):    
 
     if update.message.text.lower() != "estados" and update.message.text.lower() != "municipios" and update.message.text.lower() != "combustiveis":
@@ -68,45 +77,49 @@ def messageHandler(update: Update, context: CallbackContext):
     if "combustiveis".lower() in update.message.text.lower():
         ListarCombustiveis(update, context)
 
+# Lista o preço de todos os combustiveis por Estado escolhido
 def queryHandlerEstados(update: Update, context: CallbackContext, estado: string):
     r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}')
     resposta = r.json()
 
-    respString = (f"Preço médio de revenda dos combustiveis referentes ao estado do {estado}\n\n")
+    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado do {estado}</b>\n\n")
 
     for resp in resposta:
-        respString += "\nProduto: " + resp['produto']
-        respString += "\nPreço médio de revenda: R$" + str(resp['preco_medio_revenda'])
+        respString += "\n<b>Produto:</b> " + resp['produto']
+        respString += "\n<b>Preço médio de revenda:</b> R$" + str(resp['preco_medio_revenda'])
         respString += "\n"
 
-    context.bot.send_message(chat_id=update.effective_chat.id, text=respString)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
 
+# Lista o preço de todos os combustiveis por Municipio escolhido
 def queryHandlerMunicipios(update: Update, context: CallbackContext, municipio: string):
     r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}')
     resposta = r.json()
 
-    respString = (f"Preço médio de revenda dos combustiveis referentes ao municipio do {municipio}\n\n")
+    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio}</b>\n\n")
 
     for resp in resposta:
-        respString += "\nProduto: " + resp['produto']                
-        respString += "\nPreço médio de revenda: R$" + str(resp['preco_medio_revenda'])
+        respString += "\n<b>Produto:</b> " + resp['produto']                
+        respString += "\n<b>Preço médio de revenda:</b> R$" + str(resp['preco_medio_revenda'])
         respString += "\n"
 
-    context.bot.send_message(chat_id=update.effective_chat.id, text=respString)
+    context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
 
+# Lista o preço de todos os Combustiveis por estado, de acordo com o Combustivel escolhido
 def queryHandlerCombustiveis(update: Update, context: CallbackContext, combustivel: string):
     r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorCombustivel/{combustivel}')
     resposta = r.json()
 
-    respString = (f"Preço médio de revenda do combustivel {combustivel} listado por estado\n\n")
+    respString = (f"<b>Preço médio de revenda do combustivel {combustivel} listado por estado</b>\n\n")
 
     for resp in resposta:
-        respString += "\nEstado: " + resp['estado']
-        respString += "\nPreço médio de revenda: R$" + str(resp['preco_medio_revenda'])
+        respString += "\n<b>Estado:</b> " + resp['estado']
+        respString += "\n<b>Preço médio de revenda:</b> R$" + str(resp['preco_medio_revenda'])
         respString += "\n"
 
-    context.bot.send_message(chat_id=update.effective_chat.id, text=respString)   
+    context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)   
 
+# Handler das querys (opções clicaveis)
 def queryHandler(update: Update, context: CallbackContext):
     query = update.callback_query.data
     update.callback_query.answer()
@@ -121,7 +134,7 @@ def queryHandler(update: Update, context: CallbackContext):
         elif arg1 == "municipios":
             ListarMunicipios(update, context)            
         elif arg1 == "combustiveis":
-            ListarCombustiveis(update, context)            
+            ListarCombustiveis(update, context)
         elif arg1 == "menu":
             menu(update, context)
     else:
