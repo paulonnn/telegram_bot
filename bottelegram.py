@@ -16,7 +16,11 @@ dispatcher = updater.dispatcher
 
  # Listar Menu com as opções
 def menu(update: Update, context: CallbackContext):
-    buttons = [[InlineKeyboardButton("Municipios", callback_data="municipios-listar")], [InlineKeyboardButton("Estados", callback_data="estados-listar")], [InlineKeyboardButton("Combustiveis", callback_data="combustiveis-listar")], [InlineKeyboardButton("Avaliar o BOT", callback_data="opcao-avaliar")]]
+    buttons = [[InlineKeyboardButton("Municipios", callback_data="municipios-listar")],
+        [InlineKeyboardButton("Estados", callback_data="estados-listar")],
+        [InlineKeyboardButton("Combustiveis", callback_data="combustiveis-listar")],
+        [InlineKeyboardButton("Postos mais baratos", callback_data="opcao-maisBaratos")],
+        [InlineKeyboardButton("Avaliar o BOT", callback_data="opcao-avaliar")]]
     texto = "Bem-vindo ao Gasolina Bot!\nEscolha uma opção para continuar (<b><i>Clique</i></b> no item desejado):"
     return context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text=texto, parse_mode=telegram.constants.PARSEMODE_HTML)
 
@@ -54,7 +58,7 @@ def ListarMunicipios(update: Update, context: CallbackContext):
 
     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Municipios disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)
 
-# Lista todos os Combustiveis registrados no banco
+# Lista todos os Combustiveis registrados no banco para o endpoint de RETORNAR PRODUTOS
 def ListarCombustiveis(update: Update, context: CallbackContext):
     buttons = []
     r = requests.get('http://localhost:5000/api/v1/Registro/RetornarProdutos')
@@ -65,6 +69,59 @@ def ListarCombustiveis(update: Update, context: CallbackContext):
         buttons.append([InlineKeyboardButton(combustivel, callback_data=tipoComando)])
 
     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)  
+
+def MenuListarMunicipiosBaratos(update: Update, context: CallbackContext):
+    buttons = []
+    r = requests.get('http://localhost:5000/api/v1/Registro/RetornarMunicipios')
+    resposta = r.json()
+
+    for combustivel in resposta['data']:
+        tipoComando = "{0}-municipiosBaratos".format(combustivel)
+        buttons.append([InlineKeyboardButton(combustivel, callback_data=tipoComando)])
+
+    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de municipios disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)  
+
+# Lista o preço de todos os combustiveis por Estado escolhido
+def queryHandlerListarMunicipiosBaratos(update: Update, context: CallbackContext, municipio: string):
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorMunicipio/{municipio}')
+    resposta = r.json()
+
+    respString = (f"<b>TOP 3 municipios mais baratos {municipio}</b>\nData da atualização: {resposta['data'][0]['data']}\n")
+
+    for resp in resposta['data']:
+        respString += "\n<b>Produto:</b> " + resp['produto']
+        respString += "\n<b>Preço médio de revenda:</b> R$" + str(resp['preco_medio_revenda'])
+        respString += "\n<b>Número de postos pesquisados: </b>" + str(resp['numero_de_postos_pesquisados'])
+        respString += "\n"
+
+    context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
+
+# Lista todos os Combustiveis registrados no banco para o endpoint de LISTAR TOP 3 MAIS BARATOS POR PRODUTO (combustivel)
+def MenuListarCombustiveisBaratos(update: Update, context: CallbackContext):
+    buttons = []
+    r = requests.get('http://localhost:5000/api/v1/Registro/RetornarProdutos')
+    resposta = r.json()
+
+    for combustivel in resposta['data']:
+        tipoComando = "{0}-combustiveisBaratos".format(combustivel)
+        buttons.append([InlineKeyboardButton(combustivel, callback_data=tipoComando)])
+
+    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)  
+
+# Lista o preço de todos os combustiveis por Estado escolhido
+def queryHandlerListarCombustiveisBaratos(update: Update, context: CallbackContext, produto: string):
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorProduto/{produto}')
+    resposta = r.json()
+
+    respString = (f"<b>TOP 3 combustíveis mais baratos {produto}</b>\nData da atualização: {resposta['data'][0]['data']}\n")
+
+    for resp in resposta['data']:
+        respString += "\n<b>Produto:</b> " + resp['produto']
+        respString += "\n<b>Preço médio de revenda:</b> R$" + str(resp['preco_medio_revenda'])
+        respString += "\n<b>Número de postos pesquisados: </b>" + str(resp['numero_de_postos_pesquisados'])
+        respString += "\n"
+
+    context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
 
 # Handler para identificar a mensagem enviada pelo usuario
 def messageHandler(update: Update, context: CallbackContext):
@@ -86,7 +143,7 @@ def queryHandlerEstados(update: Update, context: CallbackContext, estado: string
     r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}')
     resposta = r.json()
 
-    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado do {estado}</b>\n\n")
+    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado do {estado}</b>\nData da atualização: {resposta['data'][0]['data']}\n")
 
     for resp in resposta['data']:
         respString += "\n<b>Produto:</b> " + resp['produto']
@@ -100,7 +157,7 @@ def queryHandlerMunicipios(update: Update, context: CallbackContext, municipio: 
     r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}')
     resposta = r.json()
 
-    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio}</b>\n\n")
+    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio}</b>\nData da atualização: {resposta['data'][0]['data']}\n")
 
     for resp in resposta['data']:
         respString += "\n<b>Produto:</b> " + resp['produto']
@@ -114,7 +171,7 @@ def queryHandlerCombustiveis(update: Update, context: CallbackContext, combustiv
     r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorCombustivel/{combustivel}')
     resposta = r.json()
 
-    respString = (f"<b>Preço médio de revenda do combustivel {combustivel} listado por estado</b>\n\n")
+    respString = (f"<b>Preço médio de revenda do combustivel {combustivel} listado por estado</b>\nData da atualização: {resposta['data'][0]['data']}\n")
 
     for resp in resposta['data']:
         respString += "\n<b>Estado:</b> " + resp['estado']
@@ -125,9 +182,17 @@ def queryHandlerCombustiveis(update: Update, context: CallbackContext, combustiv
 
 # Pergunta se o usuario deseja mostrar o menu novamente
 def msgAvaliacao(update: Update, context: CallbackContext):
-    buttons = [[InlineKeyboardButton("1 ⭐", callback_data="1-nota")], [InlineKeyboardButton("2 ⭐⭐", callback_data="2-nota")], [InlineKeyboardButton("3 ⭐⭐⭐", callback_data="3-nota")], [InlineKeyboardButton("4 ⭐⭐⭐⭐", callback_data="4-nota")], [InlineKeyboardButton("5 ⭐⭐⭐⭐⭐", callback_data="5-nota")]]
+    buttons = [[InlineKeyboardButton("1 ⭐", callback_data="1-nota")],
+        [InlineKeyboardButton("2 ⭐⭐", callback_data="2-nota")],
+        [InlineKeyboardButton("3 ⭐⭐⭐", callback_data="3-nota")],
+        [InlineKeyboardButton("4 ⭐⭐⭐⭐", callback_data="4-nota")],
+        [InlineKeyboardButton("5 ⭐⭐⭐⭐⭐", callback_data="5-nota")]]
     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="Por favor escolha uma nota de <b>1 a 5</b>", parse_mode=telegram.constants.PARSEMODE_HTML)
 
+def msgMaisBaratos(update: Update, context: CallbackContext):
+    buttons = [[InlineKeyboardButton("Combustível", callback_data="combustiveisBaratos-listar")],
+        [InlineKeyboardButton("Município", callback_data="municipiosBaratos-listar")]]
+    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="Deseja realizar a consulta por combustível ou estado?", parse_mode=telegram.constants.PARSEMODE_HTML)
 
 
 def queryHandlerAvaliar(update: Update, context: CallbackContext, nota: int):
@@ -172,8 +237,13 @@ def queryHandler(update: Update, context: CallbackContext):
             ListarMunicipios(update, context)
         elif arg1 == "combustiveis":
             ListarCombustiveis(update, context)
+        elif arg1 == "combustiveisBaratos":
+            MenuListarCombustiveisBaratos(update, context)
+        elif arg1 == "municipiosBaratos":
+            MenuListarMunicipiosBaratos(update, context)
         elif arg1 == "menu":
-            menu(update, context)        
+            menu(update, context)
+
     elif tipoComando == "estado": # Caso seja um ESTADO        
         queryHandlerEstados(update, context, arg1)
         msgMenuNovamente(update, context)
@@ -182,11 +252,24 @@ def queryHandler(update: Update, context: CallbackContext):
         queryHandlerMunicipios(update, context, arg1)
         msgMenuNovamente(update, context)
 
+    elif tipoComando == "combustiveisBaratos": # Caso seja um COMBUSTIVEL
+        queryHandlerListarCombustiveisBaratos(update, context, arg1)
+        msgMenuNovamente(update, context)
+
+    elif tipoComando == "municipiosBaratos": # Caso seja um COMBUSTIVEL
+        queryHandlerListarMunicipiosBaratos(update, context, arg1)
+        msgMenuNovamente(update, context)
+
     elif tipoComando == "combustiveis": # Caso seja um COMBUSTIVEL
         queryHandlerCombustiveis(update, context, arg1)
         msgMenuNovamente(update, context)
+
     elif tipoComando == "avaliar": # Caso seja para avaliar o bot
         msgAvaliacao(update, context)
+
+    elif tipoComando == "maisBaratos": # Caso seja para avaliar o bot
+        msgMaisBaratos(update, context)
+
     elif tipoComando == "nota": # Caso seja para dar a nota de 1 a 5 para o bot        
         if verificarSeJaAvaliou(update, context) == False:
             queryHandlerAvaliar(update, context, arg1)
