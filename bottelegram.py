@@ -64,7 +64,7 @@ def ListarMunicipiosCotacaoPosto(update: Update, context: CallbackContext):
     resposta = r.json()
 
     for municipio in resposta['data']:
-        tipoComando = "{0}-combustiveisMaisBaratosComEnd".format(municipio)
+        tipoComando = "{0}-BaratosComEnd".format(municipio)
         buttons.append([InlineKeyboardButton(municipio, callback_data=tipoComando)])
 
     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Municipios disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)    
@@ -94,10 +94,10 @@ def MenuListarMunicipiosBaratos(update: Update, context: CallbackContext):
 
 # Lista o preço de todos os combustiveis por Estado escolhido
 def queryHandlerListarMunicipiosBaratos(update: Update, context: CallbackContext, municipio: string):
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorMunicipio/{municipio}')
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorMunicipio/{municipio}') # <----------- AQUI PO ------------->
     resposta = r.json()
 
-    respString = (f"<b>TOP 3 municipios mais baratos {municipio}</b>\nData da atualização: {resposta['data'][0]['data']}\n")
+    respString = (f"<b>TOP 3 municipios mais baratos {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
 
     for resp in resposta['data']:        
         respString += "\n<b>Produto:</b> " + resp['produto']
@@ -132,10 +132,10 @@ def MenuListarCombustiveisBaratosPorMunicipio(update: Update, context: CallbackC
 
 # Lista o preço de todos os combustiveis por Estado escolhido
 def queryHandlerListarCombustiveisBaratos(update: Update, context: CallbackContext, produto: string):
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorProduto/{produto}')
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorProduto/{produto}') # <----------- AQUI PO ------------->
     resposta = r.json()
 
-    respString = (f"<b>TOP 3 combustíveis mais baratos ({produto})</b>\nData da atualização: {resposta['data'][0]['data']}\n")
+    respString = (f"<b>TOP 3 combustíveis mais baratos ({produto})</b>\nData da atualização: {DATA_ATUAL}\n")
 
     for resp in resposta['data']:
         respString += "\n<b>Estado:</b> " + resp['estado']
@@ -152,7 +152,7 @@ def queryHandlerCombustiveisBaratosPorMunicipioComEndereco(update: Update, conte
     resposta = r.json()
 
     for combustivel in resposta['data']:
-        tipoComando = "{0}-RetornarComEndereco-{1}".format(combustivel, municipio)
+        tipoComando = "{0}-ComEndereco-{1}".format(combustivel, municipio)
         buttons.append([InlineKeyboardButton(combustivel, callback_data=tipoComando)])
 
     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)     
@@ -174,10 +174,10 @@ def messageHandler(update: Update, context: CallbackContext):
 
 # Lista o preço de todos os combustiveis por Estado escolhido
 def queryHandlerEstados(update: Update, context: CallbackContext, estado: string):
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}')
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}') # <----------- AQUI PO ------------->
     resposta = r.json()
 
-    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado do {estado}</b>\nData da atualização: {resposta['data'][0]['data']}\n")
+    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado do {estado}</b>\nData da atualização: {DATA_ATUAL}\n")
 
     for resp in resposta['data']:
         respString += "\n<b>Produto:</b> " + resp['produto']
@@ -188,10 +188,10 @@ def queryHandlerEstados(update: Update, context: CallbackContext, estado: string
 
 # Lista o preço de todos os combustiveis por Municipio escolhido
 def queryHandlerMunicipios(update: Update, context: CallbackContext, municipio: string):
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}')
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}') # <----------- AQUI PO ------------->
     resposta = r.json()
 
-    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio}</b>\nData da atualização: {resposta['data'][0]['data']}\n")
+    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
 
     for resp in resposta['data']:
         respString += "\n<b>Produto:</b> " + resp['produto']
@@ -207,7 +207,7 @@ def queryHandlerCombustiveisPorMunicipio(update: Update, context: CallbackContex
     resposta = r.json()
 
     for combustivel in resposta['data']:
-        tipoComando = "{0}-RetornarTodosPrecosPorMunicipio-{1}".format(combustivel, municipio)
+        tipoComando = "{0}-PrecosByM-{1}".format(combustivel, municipio)
         buttons.append([InlineKeyboardButton(combustivel, callback_data=tipoComando)])
 
     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para a consulta no municipio de {0}</b>".format(municipio), parse_mode=telegram.constants.PARSEMODE_HTML)  
@@ -218,13 +218,13 @@ def queryHandlerCombustiveisPorEstado(update: Update, context: CallbackContext, 
     resposta = r.json()
 
     for combustivel in resposta['data']:
-        tipoComando = "{0}-RetornarTodosPrecosPorEstado-{1}".format(combustivel, estado)
+        tipoComando = "{0}-PrecosByE-{1}".format(combustivel, estado)
         buttons.append([InlineKeyboardButton(combustivel, callback_data=tipoComando)])
 
     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para a consulta no estado de {0}</b>".format(estado), parse_mode=telegram.constants.PARSEMODE_HTML)  
 
 def RetornarTodosPrecosPorMunicipio(update: Update, context: CallbackContext, produto: string, municipio: string): # COMBUSTIVEIS E MUNICIPIO    
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}/{produto}')
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}/{produto}') # <----------- AQUI PO ------------->
     resposta = r.json()
 
     respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio} no estado de {resposta['data'][0]['dados'][0]['estado']}</b>\n")    
@@ -235,24 +235,25 @@ def RetornarTodosPrecosPorMunicipio(update: Update, context: CallbackContext, pr
     context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
 
 def RetornarTodosPrecosPorMunicipioComEndereco(update: Update, context: CallbackContext, produto: string, municipio: string): # COMBUSTIVEIS E MUNICIPIO    
-    r = requests.get(f'http://localhost:5000/api/v1/CotacaoPosto/PostosMaisBaratosPorMunicipio/{produto}/{municipio}')
+    r = requests.get(f'http://localhost:5000/api/v1/CotacaoPosto/PostosMaisBaratosPorMunicipio/{produto}/{municipio}') # <----------- AQUI PO ------------->
     resposta = r.json()
+    i = 1
 
-    respString = (f"<b>TOP 3 combustíveis mais baratos ({produto}) no municipio de {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
+    respString = (f"<b>TOP 3 postos com o combustível ({produto}) mais barato no municipio de {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
 
     for resp in resposta['data']:
-        respString += "\n<b>Nome do bairro:</b> " + resp['bairro_endereco']
-        respString += "\n<b>Nome da rua:</b> " + resp['nome_rua']
-        respString += "\n<b>Número:</b> " + resp['numero_rua']
+        respString += "\n<b>POSTO " + str(i) + "</b>"        
+        respString += "\n<b>Endereço:</b> Rua " + resp['nome_rua'] + ", N° " + resp['numero_rua'] + ", Bairro " + resp['bairro_endereco']
         respString += "\n<b>Municipio:</b> " + resp['municipio_endereco']
-        respString += "\n<b>Bandeira:</b> " + resp['bandeira_posto']        
+        respString += "\n<b>Bandeira do posto:</b> " + resp['bandeira_posto']
         respString += "\n<b>Cotação:</b> R$" + str(round(resp['cotacao_produto_posto'], 2))
         respString += "\n"
+        i += 1
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)    
 
 def RetornarTodosPrecosPorEstado(update: Update, context: CallbackContext, produto: string, estado: string): # COMBUSTIVEIS E MUNICIPIO    
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}/{produto}')
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}/{produto}') # <----------- AQUI PO ------------->
     resposta = r.json()
 
     respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado de {estado}</b>\n")    
@@ -331,7 +332,7 @@ def queryHandler(update: Update, context: CallbackContext):
     elif tipoComando == "municipio": # Caso seja um MUNICIPIO        
         queryHandlerCombustiveisPorMunicipio(update, context, arg1)            
 
-    elif tipoComando == "combustiveisMaisBaratosComEnd": # Caso seja um COMBUSTIVEL
+    elif tipoComando == "BaratosComEnd": # Caso seja um COMBUSTIVEL
         queryHandlerCombustiveisBaratosPorMunicipioComEndereco(update, context, arg1)        
 
     elif tipoComando == "combustiveisBaratos": # Caso seja um COMBUSTIVEL
@@ -350,17 +351,17 @@ def queryHandler(update: Update, context: CallbackContext):
     elif tipoComando == "avaliar": # Caso seja para avaliar o bot
         msgAvaliacao(update, context)        
 
-    elif tipoComando == "RetornarTodosPrecosPorMunicipio":
+    elif tipoComando == "PrecosByM":
         arg3 = query[2]
         RetornarTodosPrecosPorMunicipio(update, context, arg1, arg3)
         menu(update, context)
 
-    elif tipoComando == "RetornarTodosPrecosPorEstado":
+    elif tipoComando == "PrecosByE":
         arg3 = query[2]
         RetornarTodosPrecosPorEstado(update, context, arg1, arg3)
         menu(update, context)
 
-    elif tipoComando == "RetornarComEndereco":
+    elif tipoComando == "ComEndereco":
         arg3 = query[2]
         RetornarTodosPrecosPorMunicipioComEndereco(update, context, arg1, arg3)
         menu(update, context)
