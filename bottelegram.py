@@ -94,16 +94,19 @@ def MenuListarMunicipiosBaratos(update: Update, context: CallbackContext):
 
 # Lista o preço de todos os combustiveis por Estado escolhido
 def queryHandlerListarMunicipiosBaratos(update: Update, context: CallbackContext, municipio: string):
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorMunicipio/{municipio}') # <----------- AQUI PO ------------->
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorMunicipio/{municipio}')
     resposta = r.json()
 
-    respString = (f"<b>TOP 3 municipios mais baratos {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
+    if resposta['status'] == 200:
+        respString = (f"<b>TOP 3 municipios mais baratos {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
 
-    for resp in resposta['data']:        
-        respString += "\n<b>Produto:</b> " + resp['produto']
-        respString += "\n<b>Preço médio de revenda:</b> R$" + str(round(resp['preco_medio_revenda'], 2))
-        respString += "\n<b>Número de postos pesquisados: </b>" + str(resp['numero_de_postos_pesquisados'])
-        respString += "\n"
+        for resp in resposta['data']:        
+            respString += "\n<b>Produto:</b> " + resp['produto']
+            respString += "\n<b>Preço médio de revenda:</b> R$" + str(round(resp['preco_medio_revenda'], 2))
+            respString += "\n<b>Número de postos pesquisados: </b>" + str(resp['numero_de_postos_pesquisados'])
+            respString += "\n"
+    else:
+        respString = "Um erro ocorreu, por favor tente novamente."
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
 
@@ -119,30 +122,33 @@ def MenuListarCombustiveisBaratos(update: Update, context: CallbackContext):
 
     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)  
 
-def MenuListarCombustiveisBaratosPorMunicipio(update: Update, context: CallbackContext):
-    buttons = []
-    r = requests.get('http://localhost:5000/api/v1/CotacaoPosto/RetornarProdutos')
-    resposta = r.json()
+# def MenuListarCombustiveisBaratosPorMunicipio(update: Update, context: CallbackContext):
+#     buttons = []
+#     r = requests.get('http://localhost:5000/api/v1/CotacaoPosto/RetornarProdutos')
+#     resposta = r.json()
 
-    for combustivel in resposta['data']:
-        tipoComando = "{0}-RetornarPrecosMaisBaratosPorMunicipioProduto".format(combustivel)
-        buttons.append([InlineKeyboardButton(combustivel, callback_data=tipoComando)])
+#     for combustivel in resposta['data']:
+#         tipoComando = "{0}-RetornarPrecosMaisBaratosPorMunicipioProduto".format(combustivel)
+#         buttons.append([InlineKeyboardButton(combustivel, callback_data=tipoComando)])
 
-    context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)  
+#     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para consulta</b>", parse_mode=telegram.constants.PARSEMODE_HTML)  
 
 # Lista o preço de todos os combustiveis por Estado escolhido
 def queryHandlerListarCombustiveisBaratos(update: Update, context: CallbackContext, produto: string):
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorProduto/{produto}') # <----------- AQUI PO ------------->
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/PrecoMediaASCPorProduto/{produto}')
     resposta = r.json()
 
-    respString = (f"<b>TOP 3 combustíveis mais baratos ({produto})</b>\nData da atualização: {DATA_ATUAL}\n")
-
-    for resp in resposta['data']:
-        respString += "\n<b>Estado:</b> " + resp['estado']
-        respString += "\n<b>Municipio:</b> " + resp['municipio']        
-        respString += "\n<b>Preço médio de revenda:</b> R$" + str(round(resp['preco_medio_revenda'], 2))
-        respString += "\n<b>Número de postos pesquisados: </b>" + str(resp['numero_de_postos_pesquisados'])
-        respString += "\n"
+    if resposta['status'] == 200:
+        respString = (f"<b>TOP 3 combustíveis mais baratos ({produto})</b>\nData da atualização: {DATA_ATUAL}\n")
+    
+        for resp in resposta['data']:
+            respString += "\n<b>Estado:</b> " + resp['estado']
+            respString += "\n<b>Municipio:</b> " + resp['municipio']        
+            respString += "\n<b>Preço médio de revenda:</b> R$" + str(round(resp['preco_medio_revenda'], 2))
+            respString += "\n<b>Número de postos pesquisados: </b>" + str(resp['numero_de_postos_pesquisados'])
+            respString += "\n"
+    else:
+        respString = "Um erro ocorreu, por favor tente novamente."
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
 
@@ -174,29 +180,35 @@ def messageHandler(update: Update, context: CallbackContext):
 
 # Lista o preço de todos os combustiveis por Estado escolhido
 def queryHandlerEstados(update: Update, context: CallbackContext, estado: string):
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}') # <----------- AQUI PO ------------->
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}')
     resposta = r.json()
 
-    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado do {estado}</b>\nData da atualização: {DATA_ATUAL}\n")
+    if resposta['status'] == 200:
+        respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado do {estado}</b>\nData da atualização: {DATA_ATUAL}\n")
 
-    for resp in resposta['data']:
-        respString += "\n<b>Produto:</b> " + resp['produto']
-        respString += "\n<b>Preço médio de revenda:</b> R$" + str(round(resp['preco_medio_revenda'], 2))
-        respString += "\n"
+        for resp in resposta['data']:
+            respString += "\n<b>Produto:</b> " + resp['produto']
+            respString += "\n<b>Preço médio de revenda:</b> R$" + str(round(resp['preco_medio_revenda'], 2))
+            respString += "\n"
+    else:
+        respString = "Um erro ocorreu, por favor tente novamente."
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
 
 # Lista o preço de todos os combustiveis por Municipio escolhido
 def queryHandlerMunicipios(update: Update, context: CallbackContext, municipio: string):
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}') # <----------- AQUI PO ------------->
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}')
     resposta = r.json()
 
-    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
+    if resposta['status'] == 200:
+        respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
 
-    for resp in resposta['data']:
-        respString += "\n<b>Produto:</b> " + resp['produto']
-        respString += "\n<b>Preço médio de revenda:</b> R$" + str(round(resp['preco_medio_revenda'], 2))
-        respString += "\n"
+        for resp in resposta['data']:
+            respString += "\n<b>Produto:</b> " + resp['produto']
+            respString += "\n<b>Preço médio de revenda:</b> R$" + str(round(resp['preco_medio_revenda'], 2))
+            respString += "\n"
+    else:
+        respString = "Um erro ocorreu, por favor tente novamente."
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
 
@@ -224,42 +236,51 @@ def queryHandlerCombustiveisPorEstado(update: Update, context: CallbackContext, 
     context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text="<b>Lista de Combustiveis disponíveis para a consulta no estado de {0}</b>".format(estado), parse_mode=telegram.constants.PARSEMODE_HTML)  
 
 def RetornarTodosPrecosPorMunicipio(update: Update, context: CallbackContext, produto: string, municipio: string): # COMBUSTIVEIS E MUNICIPIO    
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}/{produto}') # <----------- AQUI PO ------------->
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorMunicipio/{municipio}/{produto}')
     resposta = r.json()
 
-    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio} no estado de {resposta['data'][0]['dados'][0]['estado']}</b>\n")    
-    respString += "\n<b>Produto escolhido:</b> " + resposta['data'][0]['dados'][0]['produto']
-    respString += "\n<b>Preço médio de revenda:</b> R$ " + str(round(resposta['data'][0]['average'], 2))
-    respString += "\n<b>Data da atualização:</b> {0}".format(DATA_ATUAL)
+    if resposta['status'] == 200:
+        respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao municipio do {municipio} no estado de {resposta['data'][0]['dados'][0]['estado']}</b>\n")    
+        respString += "\n<b>Produto escolhido:</b> " + resposta['data'][0]['dados'][0]['produto']
+        respString += "\n<b>Preço médio de revenda:</b> R$ " + str(round(resposta['data'][0]['average'], 2))
+        respString += "\n<b>Data da atualização:</b> {0}".format(DATA_ATUAL)
+    else:
+        respString = "Um erro ocorreu, por favor tente novamente."
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)
 
 def RetornarTodosPrecosPorMunicipioComEndereco(update: Update, context: CallbackContext, produto: string, municipio: string): # COMBUSTIVEIS E MUNICIPIO    
-    r = requests.get(f'http://localhost:5000/api/v1/CotacaoPosto/PostosMaisBaratosPorMunicipio/{produto}/{municipio}') # <----------- AQUI PO ------------->
+    r = requests.get(f'http://localhost:5000/api/v1/CotacaoPosto/PostosMaisBaratosPorMunicipio/{produto}/{municipio}')
     resposta = r.json()
     i = 1
 
-    respString = (f"<b>TOP 3 postos com o combustível ({produto}) mais barato no municipio de {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
+    if resposta['status'] == 200:
+        respString = (f"<b>TOP 3 postos com o combustível ({produto}) mais barato no municipio de {municipio}</b>\nData da atualização: {DATA_ATUAL}\n")
 
-    for resp in resposta['data']:
-        respString += "\n<b>POSTO " + str(i) + "</b>"        
-        respString += "\n<b>Endereço:</b> Rua " + resp['nome_rua'] + ", N° " + resp['numero_rua'] + ", Bairro " + resp['bairro_endereco']
-        respString += "\n<b>Municipio:</b> " + resp['municipio_endereco']
-        respString += "\n<b>Bandeira do posto:</b> " + resp['bandeira_posto']
-        respString += "\n<b>Cotação:</b> R$" + str(round(resp['cotacao_produto_posto'], 2))
-        respString += "\n"
-        i += 1
+        for resp in resposta['data']:
+            respString += "\n<b>POSTO " + str(i) + "</b>"        
+            respString += "\n<b>Endereço:</b> Rua " + resp['nome_rua'] + ", N° " + resp['numero_rua'] + ", Bairro " + resp['bairro_endereco']
+            respString += "\n<b>Municipio:</b> " + resp['municipio_endereco']
+            respString += "\n<b>Bandeira do posto:</b> " + resp['bandeira_posto']
+            respString += "\n<b>Cotação:</b> R$" + str(round(resp['cotacao_produto_posto'], 2))
+            respString += "\n"
+            i += 1
+    else:
+        respString = "Um erro ocorreu, por favor tente novamente."
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)    
 
 def RetornarTodosPrecosPorEstado(update: Update, context: CallbackContext, produto: string, estado: string): # COMBUSTIVEIS E MUNICIPIO    
-    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}/{produto}') # <----------- AQUI PO ------------->
+    r = requests.get(f'http://localhost:5000/api/v1/Registro/RetornarTodosPrecosPorEstado/{estado}/{produto}')
     resposta = r.json()
 
-    respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado de {estado}</b>\n")    
-    respString += "\n<b>Produto escolhido:</b> " + resposta['data'][0]['dados'][0]['produto']
-    respString += "\n<b>Preço médio de revenda:</b> R$ " + str(round(resposta['data'][0]['average'], 2))
-    respString += "\n<b>Data da atualização:</b> {0}".format(DATA_ATUAL)
+    if resposta['status'] == 200:
+        respString = (f"<b>Preço médio de revenda dos combustiveis referentes ao estado de {estado}</b>\n")    
+        respString += "\n<b>Produto escolhido:</b> " + resposta['data'][0]['dados'][0]['produto']
+        respString += "\n<b>Preço médio de revenda:</b> R$ " + str(round(resposta['data'][0]['average'], 2))
+        respString += "\n<b>Data da atualização:</b> {0}".format(DATA_ATUAL)
+    else:
+        respString = "Um erro ocorreu, por favor tente novamente."
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=respString, parse_mode=telegram.constants.PARSEMODE_HTML)    
 
