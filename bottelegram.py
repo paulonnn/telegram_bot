@@ -25,8 +25,8 @@ def menu(update: Update, context: CallbackContext):
     return context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text=texto, parse_mode=telegram.constants.PARSEMODE_HTML)
 
 def menuNovamente(update: Update, context: CallbackContext):
-    buttons = [[InlineKeyboardButton("Municipios", callback_data="municipios-listar")],
-        [InlineKeyboardButton("Estados", callback_data="estados-listar")],        
+    buttons = [[InlineKeyboardButton("Pesquisar por Municipios", callback_data="municipios-listar")],
+        [InlineKeyboardButton("Pesquisar por Estados", callback_data="estados-listar")],        
         [InlineKeyboardButton("Postos mais baratos (por combustível)", callback_data="combustiveisBaratos-listar")],
         [InlineKeyboardButton("Verificar endereço dos postos mais baratos (por municipio e combustível)", callback_data="combustiveisBaratosPorMunicipio-listar")],
         [InlineKeyboardButton("Avaliar o BOT", callback_data="opcao-avaliar")]]
@@ -34,9 +34,8 @@ def menuNovamente(update: Update, context: CallbackContext):
     return context.bot.send_message(chat_id=update.effective_chat.id, reply_markup=InlineKeyboardMarkup(buttons), text=texto, parse_mode=telegram.constants.PARSEMODE_HTML)
 
 # TESTE
-def startCommand(update: Update, context: CallbackContext):
-    buttons = [[KeyboardButton("Teste")], [KeyboardButton("Teste 2")]]
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Bem-Vindo!", reply_markup=ReplyKeyboardMarkup(buttons))
+def iniciarCommand(update: Update, context: CallbackContext):
+    menu(update, context)
 
 # Lista todos os Estados registrados no banco
 def ListarEstados(update: Update, context: CallbackContext):
@@ -387,7 +386,7 @@ def queryHandler(update: Update, context: CallbackContext):
             context.bot.send_message(chat_id=update.effective_chat.id, text="Você já deu a sua nota para nós, não é permitido mais de uma nota por usuário.", parse_mode=telegram.constants.PARSEMODE_HTML)
             menuNovamente(update, context)
 
-dispatcher.add_handler(CommandHandler("start", startCommand))
+dispatcher.add_handler(CommandHandler("iniciar", iniciarCommand))
 dispatcher.add_handler(MessageHandler(Filters.text, messageHandler))
 dispatcher.add_handler(CallbackQueryHandler(queryHandler))
 
