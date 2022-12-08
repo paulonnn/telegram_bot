@@ -8,7 +8,7 @@ from datetime import date
 
 DATA_ATUAL = date.today().strftime("%d/%m/%Y")
 
-updater = Updater(token="5449080279:AAEMmhTKME9SZXpDUTn2jSQHbpwsc6uTQGg")
+updater = Updater(token="TOKEN_DO_BOT_AQUI")
 dispatcher = updater.dispatcher
 
 def menu(update: Update, context: CallbackContext):
